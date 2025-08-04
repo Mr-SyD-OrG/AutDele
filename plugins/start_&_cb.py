@@ -308,7 +308,7 @@ async def del_delete_handler(bot, message: Message):
 
 
 # --- Auto Delete Group Messages ---
-@Client.on_message(filters.group & ~filters.service)
+@Client.on_message(filters.group)
 async def auto_delete_message(bot: Client, message: Message):
     config = await db.chats.find_one({"chat_id": message.chat.id})
     if config and config.get("delete_after"):
