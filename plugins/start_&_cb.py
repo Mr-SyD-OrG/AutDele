@@ -316,5 +316,5 @@ async def auto_delete_message(bot: Client, message: Message):
         await asyncio.sleep(delay)
         try:
             await message.delete()
-        except:
-            pass
+        except Exception as e:
+            print(f"Failed to delete: {e}")
