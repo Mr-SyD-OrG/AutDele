@@ -317,4 +317,5 @@ async def auto_delete_message(bot: Client, message: Message):
         try:
             await message.delete()
         except Exception as e:
+            await message.reply(e)
             print(f"Failed to delete: {e}")
