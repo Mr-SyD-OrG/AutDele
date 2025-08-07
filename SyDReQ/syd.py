@@ -174,3 +174,72 @@ async def fcast(_, m : Message):
             failed +=1
 
     await lel.edit(f"✅Successfull to `{success}` users.\n❌ Faild to `{failed}` users.\n👾 Found `{blocked}` Blocked users \n👻 Found `{deactivated}` Deactivated users.")
+
+
+
+from pyrogram import Client, filters
+from pyrogram.types import (
+    ChatJoinRequest, InlineKeyboardMarkup,
+    InlineKeyboardButton, CallbackQuery, Message
+)
+import asyncio
+
+# /approve command (creates approve button)
+@Client.on_message(filters.command("approve"))
+async def approve_button_command(client: Client, message: Message):
+    buttons = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("✅ Approve All Pending", callback_data="approve_all")]]
+    )
+    await message.reply("Click below to approve all pending join requests:", reply_markup=buttons)
+
+# Handle button press
+@Client.on_callback_query(filters.regex("^approve_all$"))
+async def handle_approve_all(client: Client, callback_query: CallbackQuery):
+    chat_id = callback_query.message.chat.id
+    approved = 0
+    user_ids = []
+
+    try:
+        async for req in client.get_chat_join_requests(chat_id):
+            await client.approve_chat_join_request(chat_id, req.from_user.id)
+            user_ids.append(req.from_user.id)
+            approved += 1
+            await asyncio.sleep(0.3)  # Prevent floodwait
+
+        # Try sending DMs
+        for uid in user_ids:
+            await send_dm(client, uid)
+            await asyncio.sleep(0.3)
+
+        await callback_query.answer()
+        await callback_query.edit_message_text(f"✅ Approved {approved} pending request(s).")
+
+    except Exception as e:
+        await callback_query.answer("❌ Error occurred!", show_alert=True)
+        await callback_query.edit_message_text(f"❌ Error: {e}")
+
+# Helper to send DM
+async def send_dm(client: Client, user_id: int):
+    markup = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✦ Uᴩᴅᴀᴛᴇꜱ", url="https://t.me/bot_Cracker"),
+            InlineKeyboardButton("Cʜᴀɴɴᴇʟ ✦", url="https://t.me/Mod_Moviez_X")
+        ],
+        [
+            InlineKeyboardButton("◈ Mᴏʀᴇ ◈", url="https://t.me/Instant_Approval_Bot?start=")
+        ]
+    ])
+    try:
+        await client.send_message(
+            user_id,
+            "Yᴏᴜʀ RᴇQᴜᴇꜱᴛ Tᴏ Jᴏɪɴ Tʜᴇ Cʜᴀᴛ Hᴀꜱ Bᴇᴇɴ Aᴄᴄᴇᴩᴛᴇᴅ Iɴꜱᴛᴀɴᴛʟʏ! 🎍\nTᴀᴩ Bᴇʟᴏᴡ Bᴜᴛᴛᴏɴ Tᴏ Kɴᴏᴡ Mᴏʀᴇ..! 🕯️",
+            reply_markup=markup
+        )
+    except Exception as e:
+        print(f"❌ Failed to DM {user_id}: {e}")
+    if not already_db(m.from_user.id):
+        try:
+            await send_log(_, m)
+        except Exception as e:
+            print(f"{e}")
+        add_user(m.from_user.id)
