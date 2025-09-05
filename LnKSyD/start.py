@@ -144,20 +144,15 @@ async def update_user_count(bot: Client, message: Message):
     chat_id = message.chat.id
     user_id = message.from_user.id
 
-    if chat_id not in link_counter:
-        link_counter[chat_id] = {}
-    if user_id not in link_counter[chat_id]:
-        link_counter[chat_id][user_id] = 0
+    # increment in DB
+    count = await db.increment_violation(chat_id, user_id)
 
-    link_counter[chat_id][user_id] += 1
-    count = link_counter[chat_id][user_id]
-
-    # 🚨 threshold check
+    # 🚨 threshold reached
     if count >= 10:
         user_mention = message.from_user.mention
         admins = await bot.get_chat_administrators(chat_id)
 
-        # 🔔 notify inside group, tagging admins
+        # notify inside group
         mentions = [f"[{a.user.first_name}](tg://user?id={a.user.id})"
                     for a in admins if not a.user.is_bot]
         try:
@@ -174,29 +169,33 @@ async def update_user_count(bot: Client, message: Message):
         except:
             pass
 
-        # 📩 try DM each admin (only if they started bot before)
+        # DM admins if possible
         for a in admins:
             if not a.user.is_bot:
                 try:
                     await bot.send_message(
                         a.user.id,
                         f"⚠️ In group **{message.chat.title}**, user {user_mention} "
-                        f"has sent **{count} link messages**."
+                        f"has sent **{count} link messages**.",
+                        reply_markup=InlineKeyboardMarkup([
+                            [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
+                            [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                        ])
                     )
                 except:
                     pass
 
-        # reset count after notifying
-        link_counter[chat_id][user_id] = 0
+        # reset user counter in DB
+        await db.reset_violation(chat_id, user_id)
 
 
-# handle mute/ignore actions
+
 @Client.on_callback_query(filters.regex(r"^(mute|ignore):"))
 async def handle_admin_action(bot: Client, query):
     action, chat_id, user_id = query.data.split(":")
     chat_id, user_id = int(chat_id), int(user_id)
 
-    # only admins can press buttons
+    # only admins can press
     admin = await bot.get_chat_member(chat_id, query.from_user.id)
     if admin.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) and query.from_user.id not in Config.ADMIN:
         await query.answer("Only admins can take action.", show_alert=True)
@@ -209,9 +208,8 @@ async def handle_admin_action(bot: Client, query):
         except Exception as e:
             await query.answer(f"Error: {e}", show_alert=True)
     elif action == "ignore":
-        link_counter.get(chat_id, {}).pop(user_id, None)
+        await db.reset_violation(chat_id, user_id)
         await query.edit_message_text("ℹ️ Action ignored, counter reset.")
-
 
 
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
