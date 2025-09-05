@@ -112,6 +112,12 @@ async def delete_message(bot: Client, message: Message):
     text = text.replace("@admin", "")
 
     # check plain text links
+    if message.forward_from and message.forward_from.is_bot and message.forward_from.id == 273234066:
+        try:
+            await message.delete()
+        except Exception:
+            pass
+        return
     if message.forward_from_chat and message.forward_from_chat.id == 273234066:
         try:
             await message.delete()
