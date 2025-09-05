@@ -146,7 +146,7 @@ async def update_user_count(bot: Client, message: Message):
 
     # increment in DB
     count = await db.increment_violation(chat_id, user_id)
-    await message.reply(f"{count}")
+   # await message.reply(f"{count}")
     # 🚨 threshold reached
     if count >= 10:
         user_mention = message.from_user.mention
