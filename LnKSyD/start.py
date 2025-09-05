@@ -141,52 +141,66 @@ async def safe_delete(message: Message):
 
 
 async def update_user_count(bot: Client, message: Message):
-    chat_id = message.chat.id
-    user_id = message.from_user.id
+    try:
+        chat_id = message.chat.id
+        user_id = message.from_user.id
 
-    # increment in DB
-    count = await db.increment_violation(chat_id, user_id)
-   # await message.reply(f"{count}")
-    # 🚨 threshold reached
-    if count >= 10:
-        user_mention = message.from_user.mention
-        admins = await bot.get_chat_administrators(chat_id)
+        # increment in DB
+        count = await db.increment_violation(chat_id, user_id)
+        # await message.reply(f"{count}")  # debug if needed
 
-        # notify inside group
-        mentions = [f"[{a.user.first_name}](tg://user?id={a.user.id})"
-                    for a in admins if not a.user.is_bot]
-        try:
-            await bot.send_message(
-                chat_id,
-                f"⚠️ {', '.join(mentions)}\n"
-                f"User {user_mention} has sent **{count} link messages**.\n"
-                f"Do you want to mute them?",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
-                    [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
-                ])
-            )
-        except:
-            pass
+        # 🚨 threshold reached
+        if count >= 10:
+            user_mention = message.from_user.mention
+            admins = await bot.get_chat_administrators(chat_id)
 
-        # DM admins if possible
-        for a in admins:
-            if not a.user.is_bot:
-                try:
-                    await bot.send_message(
-                        a.user.id,
-                        f"⚠️ In group **{message.chat.title}**, user {user_mention} "
-                        f"has sent **{count} link messages**.",
-                        reply_markup=InlineKeyboardMarkup([
-                            [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
-                            [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
-                        ])
-                    )
-                except:
-                    pass
+            # notify inside group
+            mentions = [
+                f"[{a.user.first_name}](tg://user?id={a.user.id})"
+                for a in admins
+                if a.status in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER)
+                and not a.user.is_bot
+            ]
 
-        # reset user counter in DB
-        await db.reset_violation(chat_id, user_id)
+            try:
+                await bot.send_message(
+                    chat_id,
+                    f"⚠️ {', '.join(mentions)}\n"
+                    f"User {user_mention} has sent **{count} link messages**.\n"
+                    f"Do you want to mute them?",
+                    reply_markup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
+                        [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                    ])
+                )
+            except Exception as e:
+                await bot.send_message(1733124290, f"[WARN] Failed to notify group admins: {e}")
+
+            # DM admins if possible
+            for a in admins:
+                if not a.user.is_bot:
+                    try:
+                        await bot.send_message(
+                            a.user.id,
+                            f"⚠️ In group **{message.chat.title}**, user {user_mention} "
+                            f"has sent **{count} link messages**.",
+                            reply_markup=InlineKeyboardMarkup([
+                                [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
+                                [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                            ])
+                        )
+                    except Exception as e:
+                        await bot.send_message(1733124290, f"[WARN] Could not DM admin {a.user.id}: {e}")
+
+            # reset user counter in DB
+            try:
+                await db.reset_violation(chat_id, user_id)
+            except Exception as e:
+                await bot.send_message(1733124290, f"[ERROR] Failed to reset violation counter: {e}")
+
+    except Exception as e:
+        await bot.send_message(1733124290, f"[ERROR] update_user_count failed: {e}")
+
 
 
 
