@@ -152,8 +152,12 @@ async def update_user_count(bot: Client, message: Message):
         # 🚨 threshold reached
         if count >= 10:
             user_mention = message.from_user.mention
-            admins = await bot.get_chat_administrators(chat_id)
-
+            admins = [
+                    m async for m in bot.get_chat_members(
+                        chat_id,
+                        filter=enums.ChatMembersFilter.ADMINISTRATORS
+                    )
+                ]
             # notify inside group
             mentions = [
                 f"[{a.user.first_name}](tg://user?id={a.user.id})"
