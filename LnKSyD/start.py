@@ -82,65 +82,136 @@ async def chk(_, cb : CallbackQuery):
 
 LINK_REGEX = re.compile(r"(https?://|www\.|t\.me/|telegram\.me/|bit\.ly|goo\.gl|@)")
 
+from pyrogram import Client, filters, enums
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+
+# in-memory storage {chat_id: {user_id: count}}
+link_counter = {}
+
 @Client.on_message(filters.group & ~filters.service)
 async def delete_message(bot: Client, message: Message):
     await db.add_grp(message.chat.id)
 
-    # skip non-text messages
-    if not message.text:
+    # skip messages without sender
+    if not message.from_user:
         return
 
     user_id = message.from_user.id
+
+    # check user status (skip admins/owners)
     try:
         user = await bot.get_chat_member(message.chat.id, user_id)
-        user_status = user.status
+        if user.status in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) or user_id in Config.ADMIN:
+            return
     except:
-        user_status = None
+        pass
 
-    if (
-        user_status == enums.ChatMemberStatus.ADMINISTRATOR
-        or user_status == enums.ChatMemberStatus.OWNER
-        or user_id in Config.ADMIN
-    ):
-        return
+    text = (message.text or "").lower().replace("@admin", "")
 
-    text = message.text.lower()
-    words = text.split()
-
-    text = message.text.lower()
-
-    text = text.replace("@admin", "")
-
-    # check plain text links
+    # 🚫 check forwarded from bot
     if message.forward_from and message.forward_from.is_bot and message.forward_from.id == 273234066:
-        try:
-            await message.delete()
-        except Exception:
-            pass
+        await safe_delete(message)
+        await update_user_count(bot, message)
         return
     if message.forward_from_chat and message.forward_from_chat.id == 273234066:
-        try:
-            await message.delete()
-        except Exception:
-            pass
-        return
-        
-    if LINK_REGEX.search(text):
-        try:
-            await message.delete()
-        except Exception:
-            pass
+        await safe_delete(message)
+        await update_user_count(bot, message)
         return
 
-    # check hyperlinks in entities
+    # 🚫 check plain text links
+    if LINK_REGEX.search(text):
+        await safe_delete(message)
+        await update_user_count(bot, message)
+        return
+
+    # 🚫 check hyperlink entities
     if message.entities:
         for entity in message.entities:
             if entity.type == enums.MessageEntityType.TEXT_LINK:
-                try:
-                    await message.delete()
-                except Exception:
-                    pass
+                await safe_delete(message)
+                await update_user_count(bot, message)
                 return
+
+
+async def safe_delete(message: Message):
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+
+async def update_user_count(bot: Client, message: Message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+
+    if chat_id not in link_counter:
+        link_counter[chat_id] = {}
+    if user_id not in link_counter[chat_id]:
+        link_counter[chat_id][user_id] = 0
+
+    link_counter[chat_id][user_id] += 1
+    count = link_counter[chat_id][user_id]
+
+    # 🚨 threshold check
+    if count >= 10:
+        user_mention = message.from_user.mention
+        admins = await bot.get_chat_administrators(chat_id)
+
+        # 🔔 notify inside group, tagging admins
+        mentions = [f"[{a.user.first_name}](tg://user?id={a.user.id})"
+                    for a in admins if not a.user.is_bot]
+        try:
+            await bot.send_message(
+                chat_id,
+                f"⚠️ {', '.join(mentions)}\n"
+                f"User {user_mention} has sent **{count} link messages**.\n"
+                f"Do you want to mute them?",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
+                    [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                ])
+            )
+        except:
+            pass
+
+        # 📩 try DM each admin (only if they started bot before)
+        for a in admins:
+            if not a.user.is_bot:
+                try:
+                    await bot.send_message(
+                        a.user.id,
+                        f"⚠️ In group **{message.chat.title}**, user {user_mention} "
+                        f"has sent **{count} link messages**."
+                    )
+                except:
+                    pass
+
+        # reset count after notifying
+        link_counter[chat_id][user_id] = 0
+
+
+# handle mute/ignore actions
+@Client.on_callback_query(filters.regex(r"^(mute|ignore):"))
+async def handle_admin_action(bot: Client, query):
+    action, chat_id, user_id = query.data.split(":")
+    chat_id, user_id = int(chat_id), int(user_id)
+
+    # only admins can press buttons
+    admin = await bot.get_chat_member(chat_id, query.from_user.id)
+    if admin.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) and query.from_user.id not in Config.ADMIN:
+        await query.answer("Only admins can take action.", show_alert=True)
+        return
+
+    if action == "mute":
+        try:
+            await bot.restrict_chat_member(chat_id, user_id, enums.ChatPermissions())
+            await query.edit_message_text(f"✅ User [{user_id}](tg://user?id={user_id}) has been muted.")
+        except Exception as e:
+            await query.answer(f"Error: {e}", show_alert=True)
+    elif action == "ignore":
+        link_counter.get(chat_id, {}).pop(user_id, None)
+        await query.edit_message_text("ℹ️ Action ignored, counter reset.")
+
 
 
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
