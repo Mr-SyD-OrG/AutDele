@@ -3,7 +3,7 @@ import logging
 from pyrogram import Client, filters, enums
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, ChatAdminRequired, UserNotParticipant, PeerIdInvalid
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, CallbackQuery, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, CallbackQuery, Message, ChatPermissions
 from .database import db
 from config import Config, Txt
 from info import AUTH_CHANNEL
@@ -221,7 +221,7 @@ async def handle_admin_action(bot: Client, query):
 
     if action == "mute":
         try:
-            await bot.restrict_chat_member(chat_id, user_id, enums.ChatPermissions())
+            await bot.restrict_chat_member(chat_id, user_id, ChatPermissions())
             await query.edit_message_text(f"✅ User [{user_id}](tg://user?id={user_id}) has been muted.")
         except Exception as e:
             await query.answer(f"Error: {e}", show_alert=True)
