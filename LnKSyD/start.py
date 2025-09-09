@@ -80,7 +80,14 @@ async def chk(_, cb : CallbackQuery):
     else:
         await cb.message.reply_text(text=Txt.STRT_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)
 
-LINK_REGEX = re.compile(r"(https?://|www\.|t\.me/|telegram\.me/|bit\.ly|goo\.gl|@)")
+import re
+
+LINK_REGEX = re.compile(
+    r"(https?://|www\.|t\.me/|telegram\.me/|bit\.ly|goo\.gl|@)"
+    r"|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?",
+    re.IGNORECASE
+)
+
 
 from pyrogram import Client, filters, enums
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
