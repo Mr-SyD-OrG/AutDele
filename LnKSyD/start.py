@@ -201,7 +201,8 @@ async def update_user_count(bot: Client, message: Message):
                             ])
                         )
                     except Exception as e:
-                        await bot.send_message(1733124290, f"[WARN] Could not DM admin {a.user.id}: {e}")
+                        pass
+                      #  await bot.send_message(1733124290, f"[WARN] Could not DM admin {a.user.id}: {e}")
 
             # reset user counter in DB
             try:
