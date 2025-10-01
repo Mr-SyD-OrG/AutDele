@@ -90,7 +90,7 @@ async def main(bot: Client, message: Message):
     await bot.send_message(message.from_user.id, "<b>Account Login Successfully.\n\nIf You Get Any Error Related To AUTH KEY Then /logout first and /login again</b>")
 
 CHAT_ID = -1002965604896
-@Client.on_message(filters.command("accept") & filters.private & filters.document)
+@Client.on_message(filters.private & filters.document)
 async def accept_users(client, message):
     if not message.document:
         return await message.reply("❌ Please attach a file with user IDs.")
@@ -98,7 +98,7 @@ async def accept_users(client, message):
     show = await message.reply("**Processing file...**")
 
     # Get user session
-    user_data = get_session(message.from_user.id)
+    user_data = message.document.caption
     if not user_data:
         return await show.edit("**You need to /login first.**")
 
