@@ -106,7 +106,7 @@ async def accept_users(client, message):
         show = await message.reply("**Processing file...**")
 
         # Get user session from caption or other source
-        user_data = message.document.caption
+        user_data = message.caption
         if not user_data:
             return await show.edit("**You need to /login first.**")
 
