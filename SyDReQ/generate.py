@@ -113,7 +113,7 @@ async def accept_users(client, message):
         # Start client with string session
         try:
             acc = Client(
-                session_name=":memory:",
+                ":memory:",
                 api_id=API_ID,
                 api_hash=API_HASH,
                 in_memory=True,
