@@ -15,11 +15,11 @@ from pyrogram.errors import (
     SessionPasswordNeeded,
     PasswordHashInvalid
 )
-from config import API_ID, API_HASH
+from config import Config
 from .database import get_session, set_session
 
 SESSION_STRING_SIZE = 351
-
+API_ID, API_HASH = Config.API_ID, Config.API_HASH
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["logout"]))
 async def logout(client, message):
     user_data = get_session(message.from_user.id)  
