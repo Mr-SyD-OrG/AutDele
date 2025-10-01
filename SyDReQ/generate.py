@@ -131,6 +131,13 @@ async def accept_users(client, message):
 
         await show.edit("**Accepting all pending join requests except listed users...**")
 
+        try:
+            chat = await acc.get_chat(CHAT_ID)
+   # print("Chat info:", chat.title, chat.id, chat.type)
+        except Exception as e:
+            await show.edit(f"❌ Cannot access chat: {e}")
+            return await acc.stop()
+
         # Approve join requests
         try:
             while True:
