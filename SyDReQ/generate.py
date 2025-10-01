@@ -41,7 +41,7 @@ async def main(bot: Client, message: Message):
     phone_number = phone_number_msg.text
     client = Client(":memory:", API_ID, API_HASH)
     await client.connect()
-    client = Client(session_name=":memory:", api_id=API_ID, api_hash=API_HASH, in_memory=True)
+    #client = Client(session_name=":memory:", api_id=API_ID, api_hash=API_HASH, in_memory=True)
 
   #  await client.start(phone_number=phone_number)
     await phone_number_msg.reply("Sending OTP...")
