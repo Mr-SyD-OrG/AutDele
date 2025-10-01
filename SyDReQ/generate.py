@@ -16,21 +16,21 @@ from pyrogram.errors import (
     PasswordHashInvalid
 )
 from config import API_ID, API_HASH
-from plugins.database import db
+from .database import get_session, set_session
 
 SESSION_STRING_SIZE = 351
 
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["logout"]))
 async def logout(client, message):
-    user_data = db.get_session(message.from_user.id)  
+    user_data = get_session(message.from_user.id)  
     if user_data is None:
         return 
-    await db.set_session(message.from_user.id, session=None)  
+    await set_session(message.from_user.id, session=None)  
     await message.reply("**Logout Successfully** ♦")
 
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["login"]))
 async def main(bot: Client, message: Message):
-    user_data = db.get_session(message.from_user.id)
+    user_data = get_session(message.from_user.id)
     if user_data is not None:
         await message.reply("**Your Are Already Logged In. First /logout Your Old Session. Then Do Login.**")
         return 
@@ -78,12 +78,52 @@ async def main(bot: Client, message: Message):
         if user_data is None:
             uclient = Client(":memory:", session_string=string_session, api_id=API_ID, api_hash=API_HASH)
             await uclient.connect()
-            await db.set_session(message.from_user.id, session=string_session)
+            set_session(message.from_user.id, session=string_session)
     except Exception as e:
         return await message.reply_text(f"<b>ERROR IN LOGIN:</b> `{e}`")
     await bot.send_message(message.from_user.id, "<b>Account Login Successfully.\n\nIf You Get Any Error Related To AUTH KEY Then /logout first and /login again</b>")
 
+CHAT_ID = -1002965604896
+@Client.on_message(filters.command("accept") & filters.private & filters.document)
+async def accept_users(client, message):
+    if not message.document:
+        return await message.reply("❌ Please attach a file with user IDs.")
 
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
+    show = await message.reply("**Processing file...**")
+
+    # Get user session
+    user_data = get_session(message.from_user.id)
+    if not user_data:
+        return await show.edit("**You need to /login first.**")
+
+    # Start client with string session
+    acc = Client(
+        session_name=":memory:",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        in_memory=True,
+        session_string=user_data
+    )
+    await acc.start()
+
+    # Read excluded IDs from file
+    file = await message.download(in_memory=True)
+    content = file.read().decode("utf-8")
+    excluded_ids = set(int(line.strip()) for line in content.splitlines() if line.strip().isdigit())
+
+    await show.edit("**Accepting all pending join requests except listed users...**")
+
+    try:
+        while True:
+            pending_requests = [req async for req in acc.get_chat_join_requests(CHAT_ID)]
+            if not pending_requests:
+                break
+            for req in pending_requests:
+                if req.from_user.id not in excluded_ids:
+                    await acc.approve_chat_join_request(CHAT_ID, req.from_user.id)
+            await asyncio.sleep(1)
+        await show.edit("✅ Done! All requests accepted (excluding listed users).")
+    except Exception as e:
+        await show.edit(f"❌ Error: {str(e)}")
+    finally:
+        await acc.stop()
