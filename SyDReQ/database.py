@@ -39,6 +39,22 @@ def add_group(chat_id):
         return
     return groups.insert_one({"chat_id": str(chat_id)})
 
+def set_session(user_id, session_string):
+    users.update_one(
+        {"user_id": str(user_id)},
+        {"$set": {"session": session_string}},
+        upsert=True
+    )
+
+# -----------------------------
+# Get session string for a user
+# -----------------------------
+def get_session(user_id):
+    user = users.find_one({"user_id": str(user_id)})
+    if user and "session" in user:
+        return user["session"]
+    return None
+        
 def all_users():
     user = users.find({})
     usrs = len(list(user))
