@@ -19,6 +19,7 @@ from config import Config
 from .database import get_session, set_session
 
 SESSION_STRING_SIZE = 351
+
 API_ID, API_HASH = Config.API_ID, Config.API_HASH
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["logout"]))
 async def logout(client, message):
@@ -120,6 +121,13 @@ async def accept_users(client, message):
         except Exception as e:
             return await show.edit(f"❌ Failed to start userbot client: {e}")
 
+        try:
+            me = await acc.get_me()
+            acc_name = f"{me.first_name} @{me.username}" if me.username else me.first_name
+        except Exception as e:
+            await acc.stop()
+            return await show.edit(f"❌ Failed to get account info: {e}")
+            
         # Read excluded IDs from file
         try:
             file = await message.download(in_memory=True)
