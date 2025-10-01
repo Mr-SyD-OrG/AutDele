@@ -90,46 +90,69 @@ async def main(bot: Client, message: Message):
     await bot.send_message(message.from_user.id, "<b>Account Login Successfully.\n\nIf You Get Any Error Related To AUTH KEY Then /logout first and /login again</b>")
 
 CHAT_ID = -1002965604896
+from pyrogram import Client, filters
+import asyncio
+
+API_ID = 123456
+API_HASH = "your_api_hash"
+CHAT_ID = -1001234567890  # fixed chat/group
+
 @Client.on_message(filters.private & filters.document)
 async def accept_users(client, message):
-    if not message.document:
-        return await message.reply("❌ Please attach a file with user IDs.")
-
-    show = await message.reply("**Processing file...**")
-
-    # Get user session
-    user_data = message.document.caption
-    if not user_data:
-        return await show.edit("**You need to /login first.**")
-
-    # Start client with string session
-    acc = Client(
-        session_name=":memory:",
-        api_id=API_ID,
-        api_hash=API_HASH,
-        in_memory=True,
-        session_string=user_data
-    )
-    await acc.start()
-
-    # Read excluded IDs from file
-    file = await message.download(in_memory=True)
-    content = file.read().decode("utf-8")
-    excluded_ids = set(int(line.strip()) for line in content.splitlines() if line.strip().isdigit())
-
-    await show.edit("**Accepting all pending join requests except listed users...**")
-
     try:
-        while True:
-            pending_requests = [req async for req in acc.get_chat_join_requests(CHAT_ID)]
-            if not pending_requests:
-                break
-            for req in pending_requests:
-                if req.from_user.id not in excluded_ids:
-                    await acc.approve_chat_join_request(CHAT_ID, req.from_user.id)
-            await asyncio.sleep(1)
-        await show.edit("✅ Done! All requests accepted (excluding listed users).")
+        if not message.document:
+            return await message.reply("❌ Please attach a file with user IDs.")
+
+        show = await message.reply("**Processing file...**")
+
+        # Get user session from caption or other source
+        user_data = message.document.caption
+        if not user_data:
+            return await show.edit("**You need to /login first.**")
+
+        # Start client with string session
+        try:
+            acc = Client(
+                session_name=":memory:",
+                api_id=API_ID,
+                api_hash=API_HASH,
+                in_memory=True,
+                session_string=user_data
+            )
+            await acc.start()
+        except Exception as e:
+            return await show.edit(f"❌ Failed to start userbot client: {e}")
+
+        # Read excluded IDs from file
+        try:
+            file = await message.download(in_memory=True)
+            content = file.read().decode("utf-8")
+            excluded_ids = set(int(line.strip()) for line in content.splitlines() if line.strip().isdigit())
+        except Exception as e:
+            await acc.stop()
+            return await show.edit(f"❌ Failed to read file: {e}")
+
+        await show.edit("**Accepting all pending join requests except listed users...**")
+
+        # Approve join requests
+        try:
+            while True:
+                pending_requests = [req async for req in acc.get_chat_join_requests(CHAT_ID)]
+                if not pending_requests:
+                    break
+                for req in pending_requests:
+                    if req.from_user.id not in excluded_ids:
+                        try:
+                            await acc.approve_chat_join_request(CHAT_ID, req.from_user.id)
+                        except Exception as inner_e:
+                            # Log but continue
+                            await show.reply(f"⚠️ Could not approve {req.from_user.id}: {inner_e}")
+                await asyncio.sleep(1)
+            await show.edit("✅ Done! All requests accepted (excluding listed users).")
+        except Exception as e:
+            await show.edit(f"❌ Error during approving requests: {e}")
+        finally:
+            await acc.stop()
+
     except Exception as e:
-        await show.edit(f"❌ Error: {str(e)}")
-    finally:
-        await acc.stop()
+        await message.reply(f"❌ Unexpected error: {e}")
