@@ -93,9 +93,6 @@ CHAT_ID = -1002965604896
 from pyrogram import Client, filters
 import asyncio
 
-API_ID = 123456
-API_HASH = "your_api_hash"
-CHAT_ID = -1001234567890  # fixed chat/group
 
 @Client.on_message(filters.private & filters.document)
 async def accept_users(client, message):
