@@ -22,7 +22,7 @@ SESSION_STRING_SIZE = 351
 
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["logout"]))
 async def logout(client, message):
-    user_data = await db.get_session(message.from_user.id)  
+    user_data = db.get_session(message.from_user.id)  
     if user_data is None:
         return 
     await db.set_session(message.from_user.id, session=None)  
@@ -30,7 +30,7 @@ async def logout(client, message):
 
 @Client.on_message(filters.private & ~filters.forwarded & filters.command(["login"]))
 async def main(bot: Client, message: Message):
-    user_data = await db.get_session(message.from_user.id)
+    user_data = db.get_session(message.from_user.id)
     if user_data is not None:
         await message.reply("**Your Are Already Logged In. First /logout Your Old Session. Then Do Login.**")
         return 
