@@ -116,11 +116,11 @@ async def delete_message(bot: Client, message: Message):
     text = (message.text or "").lower().replace("@admin", "")
 
     # 🚫 check forwarded from bot
-    if message.forward_from and message.forward_from.is_bot and message.forward_from.id == 273234066:
+    if message.forward_from and message.forward_from.is_bot and message.forward_from.id in [273234066, 5605632845]:
         await safe_delete(message)
         await update_user_count(bot, message)
         return
-    if message.forward_from_chat and message.forward_from_chat.id == 273234066:
+    if message.forward_from_chat and message.forward_from_chat.id in [273234066, 5605632845]:
         await safe_delete(message)
         await update_user_count(bot, message)
         return
