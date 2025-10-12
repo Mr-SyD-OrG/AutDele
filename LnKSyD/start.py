@@ -174,7 +174,7 @@ async def update_user_count(bot: Client, message: Message):
             ]
 
             try:
-                await bot.send_message(
+                syd = await bot.send_message(
                     chat_id,
                     f"⚠️ {', '.join(mentions)}\n"
                     f"User {user_mention} has sent **{count} link messages**.\n"
@@ -210,6 +210,11 @@ async def update_user_count(bot: Client, message: Message):
             except Exception as e:
                 await bot.send_message(1733124290, f"[ERROR] Failed to reset violation counter: {e}")
 
+            try:
+                await asyncio.sleep(60)
+                await syd.delete()
+            except:
+                pass
     except Exception as e:
         await bot.send_message(1733124290, f"[ERROR] update_user_count failed: {e}")
 
@@ -236,6 +241,12 @@ async def handle_admin_action(bot: Client, query):
     elif action == "ignore":
         await db.reset_violation(chat_id, user_id)
         await query.edit_message_text("ℹ️ Action ignored, counter reset.")
+
+    try:
+        await asyncio.sleep(6)
+        await syd.delete()
+    except:
+        pass
 
 
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
