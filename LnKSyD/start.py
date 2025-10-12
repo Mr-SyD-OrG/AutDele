@@ -244,7 +244,8 @@ async def handle_admin_action(bot: Client, query):
 
     try:
         await asyncio.sleep(6)
-        await query.message.delete()
+        if query.message.chat.type != enums.ChatType.PRIVATE:
+            await query.message.delete()
     except:
         pass
 
