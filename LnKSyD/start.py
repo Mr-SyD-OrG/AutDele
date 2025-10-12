@@ -244,7 +244,7 @@ async def handle_admin_action(bot: Client, query):
 
     try:
         await asyncio.sleep(6)
-        await syd.delete()
+        await query.message.delete()
     except:
         pass
 
