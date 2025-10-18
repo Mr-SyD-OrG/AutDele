@@ -234,7 +234,7 @@ async def handle_admin_action(bot: Client, query):
 
     if action == "mute":
         try:
-            u = await client.get_users(user_id)
+            u = await bot.get_users(user_id)
             syd = f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username or "Unknown"
             await bot.restrict_chat_member(chat_id, user_id, ChatPermissions())
             await query.edit_message_text(f"✅ User [{syd}](tg://user?id={user_id}) [ID: {user_id}] has been muted.")
