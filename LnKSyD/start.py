@@ -283,6 +283,85 @@ async def handle_admin_action(bot: Client, query):
     except:
         pass
 
+from pyrogram import Client, filters
+import asyncio
+from pyrogram.errors import FloodWait, ChatAdminRequired, ChatWriteForbidden, ChatInvalid
+
+@Client.on_message(filters.command("groups") & filters.user(ADMIN_ID))
+async def list_groups(bot: Client, msg):
+    grps = await db.chas.find().to_list(None)
+    if not grps:
+        return await msg.reply("No groups stored yet.")
+
+    text = "📋 **Stored Groups:**\n"
+    for i, g in enumerate(grps, start=1):
+        try:
+            c = await bot.get_chat(g["_id"])
+            m = await bot.get_chat_members_count(g["_id"])
+            name = c.title or c.first_name or "Unknown"
+            text += f"\n{i}. `{name}`\n   🆔 `{g['_id']}` | 👥 `{m}`"
+            await asyncio.sleep(0.7)  # Flood-wait safety (Telegram API rate limit)
+        except Exception as e:
+            text += f"\n{i}. ⚠️ `{g['_id']}` — Error: {e}"
+            await asyncio.sleep(0.5)
+
+    # Telegram has message length limits (4096 chars), handle if too long
+    if len(text) > 4000:
+        for chunk in [text[i:i+4000] for i in range(0, len(text), 4000)]:
+            await msg.reply(chunk)
+            await asyncio.sleep(1)
+    else:
+        await msg.reply(text)
+
+
+
+@Client.on_message(filters.command("invite") & filters.user(ADMIN_ID))
+async def get_invites(bot: Client, msg):
+    parts = msg.text.split()
+    if len(parts) < 2:
+        return await msg.reply("Usage:\n`/invite <chat_id1> <chat_id2> ...`", quote=True)
+
+    chat_ids = parts[1:]
+    text = "🔗 **Group Invite Links / Usernames:**\n"
+    
+    for i, cid in enumerate(chat_ids, start=1):
+        try:
+            cid = int(cid)
+            chat = await bot.get_chat(cid)
+            
+            if chat.username:
+                link = f"https://t.me/{chat.username}"
+            else:
+                try:
+                    invite = await bot.create_chat_invite_link(cid)
+                    link = invite.invite_link
+                except ChatAdminRequired:
+                    link = "❌ Bot not admin (can't create link)"
+                except ChatWriteForbidden:
+                    link = "❌ Bot restricted in group"
+                except Exception as e:
+                    link = f"⚠️ Error: {e}"
+
+            name = chat.title or chat.first_name or "Unknown"
+            text += f"\n{i}. `{name}`\n   🆔 `{cid}`\n   🔗 {link}"
+
+        except FloodWait as f:
+            await asyncio.sleep(f.value + 1)
+        except ChatInvalid:
+            text += f"\n{i}. ⚠️ Invalid chat ID: `{cid}`"
+        except Exception as e:
+            text += f"\n{i}. ⚠️ Error for `{cid}`: {e}"
+        
+        await asyncio.sleep(1)  # floodwait safety
+
+    if len(text) > 4000:
+        for chunk in [text[i:i+4000] for i in range(0, len(text), 4000)]:
+            await msg.reply(chunk)
+            await asyncio.sleep(1)
+    else:
+        await msg.reply(text)
+
+
 
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram import Client, filters
