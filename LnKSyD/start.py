@@ -97,9 +97,18 @@ link_counter = {}
 
 @Client.on_message(filters.group & ~filters.service)
 async def delete_message(bot: Client, message: Message):
-    await db.add_grp(message.chat.id)
+    added = await db.add_grp(message.chat.id)
+    if added:
+        try:
+            c = await bot.get_chat(message.chat.id)
+            m = await bot.get_chat_members_count(message.chat.id)
+            await bot.send_message(
+                ADMINS,
+                f"📢 **New Group Added**\n🏷️ `{c.title or c.first_name or 'Unknown'}`\n🆔 `{message.chat.id}`\n👥 `{m}`"
+            )
+        except Exception as e:
+            print(f"⚠️ Admin notify fail {message.chat.id}: {e}")
 
-    # skip messages without sender
     if not message.from_user:
         return
 
