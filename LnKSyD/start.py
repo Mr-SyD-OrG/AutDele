@@ -236,7 +236,7 @@ async def handle_admin_action(bot: Client, query):
 
     admin = await bot.get_chat_member(chat_id, query.from_user.id)
     if admin.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) and query.from_user.id not in Config.ADMIN:
-        await query.answer("Only admins can take action.", show_alert=True)
+        await query.answer("Oɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴛᴀᴋᴇ ᴀᴄᴛɪᴏɴ ⓘ", show_alert=True)
         return
 
     try:
