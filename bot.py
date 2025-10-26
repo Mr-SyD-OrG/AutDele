@@ -41,7 +41,7 @@ class Bot(Client):
         )
 
     async def start(self):
-        await super().start()
+       # await super().start()
         me = await self.get_me()
         self.mention = me.mention
         self.username = me.username
@@ -82,7 +82,7 @@ class Bot(Client):
             bot_token=Config.REQ_TOKEN
         )
         try:
-            await syd.start()
+          #  await syd.start()
         
             await syyd.start()
         except Exception as e:
