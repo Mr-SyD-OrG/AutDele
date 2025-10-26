@@ -188,10 +188,10 @@ async def update_user_count(bot: Client, message: Message):
                     f"⚠️ {', '.join(mentions)}\n"
                     f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                     f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
-                    reply_markup=InlineKeyboardMarkup([
+                    reply_markup=InlineKeyboardMarkup([[
                         InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                         InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
-                    ])
+                    ]])
                 )
             except Exception as e:
                 await bot.send_message(1733124290, f"[WARN] Failed to notify group admins: {e}")
@@ -204,10 +204,10 @@ async def update_user_count(bot: Client, message: Message):
                             a.user.id,
                             f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                             f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
-                            reply_markup=InlineKeyboardMarkup([
+                            reply_markup=InlineKeyboardMarkup([[
                                 InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                                 InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
-                            ])
+                            ]])
                         )
                     except Exception as e:
                         pass
