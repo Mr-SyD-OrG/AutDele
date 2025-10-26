@@ -166,7 +166,7 @@ async def update_user_count(bot: Client, message: Message):
         # await message.reply(f"{count}")  # debug if needed
 
         # 🚨 threshold reached
-        if count in [10, 25, 30, 50, 60, 75, 90] or count >= 100:
+        if count in [10, 25, 30, 50, 60, 75, 90] or (count >= 100 and count % 25 == 0):
             user_mention = message.from_user.mention
             admins = [
                     m async for m in bot.get_chat_members(
