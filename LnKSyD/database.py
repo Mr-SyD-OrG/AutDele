@@ -27,8 +27,12 @@ class Database:
         return await self.users.count_documents({})
 
     async def add_grp(self, chat_id: int):
-        if not await self.chas.find_one({"_id": chat_id}):
-            await self.chas.insert_one({"_id": chat_id})
+        existing = await self.chas.find_one({"_id": chat_id})
+        if existing:
+            return False
+        await self.chas.insert_one({"_id": chat_id})
+        return True
+
 
     async def get_all_grps(self):
         return self.chas.find({})
