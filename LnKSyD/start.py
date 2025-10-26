@@ -62,7 +62,7 @@ async def chk(_, cb : CallbackQuery):
     try:
         await _.get_chat_member(CHID, cb.from_user.id)
     except:
-        await cb.answer("You ᴀʀᴇ ɴᴏᴛ ᴊᴏɪɴᴇᴅ ɪɴ ᴍʏ ᴄʜᴀɴɴᴇʟ, ᴊᴏɪɴ ᴛʜᴇ ᴄʜᴀɴɴᴇʟ ᴛʜᴇɴ ᴄʜᴇᴄᴋ ᴀɢᴀɪɴ. 🎐", show_alert=True)
+        await cb.answer("You ᴀʀᴇ ɴᴏᴛ ᴊᴏɪɴᴇᴅ ɪɴ ᴍʏ ᴄʜᴀɴɴᴇʟ, ᴊᴏɪɴ ᴛʜᴇ ᴄʜᴀɴɴᴇʟ ᴀɴᴅ ᴛʀʏ ᴀɢᴀɪɴ. 🎐", show_alert=True)
         return 
 
     user = cb.from_user
@@ -157,7 +157,7 @@ async def update_user_count(bot: Client, message: Message):
         # await message.reply(f"{count}")  # debug if needed
 
         # 🚨 threshold reached
-        if count >= 10:
+        if count in [10, 25, 30, 50, 60, 75, 90] or count >= 100:
             user_mention = message.from_user.mention
             admins = [
                     m async for m in bot.get_chat_members(
@@ -177,11 +177,11 @@ async def update_user_count(bot: Client, message: Message):
                 syd = await bot.send_message(
                     chat_id,
                     f"⚠️ {', '.join(mentions)}\n"
-                    f"User {user_mention} has sent **{count} link messages**.\n"
-                    f"Do you want to mute them?",
+                    f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
+                    f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
                     reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
-                        [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                        InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
+                        InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
                     ])
                 )
             except Exception as e:
@@ -193,11 +193,11 @@ async def update_user_count(bot: Client, message: Message):
                     try:
                         await bot.send_message(
                             a.user.id,
-                            f"⚠️ In group **{message.chat.title}**, user {user_mention} "
-                            f"has sent **{count} link messages**.",
+                            f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
+                            f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
                             reply_markup=InlineKeyboardMarkup([
-                                [InlineKeyboardButton("🔇 Mute", callback_data=f"mute:{chat_id}:{user_id}")],
-                                [InlineKeyboardButton("❌ Ignore", callback_data=f"ignore:{chat_id}:{user_id}")]
+                                InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
+                                InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
                             ])
                         )
                     except Exception as e:
@@ -205,13 +205,13 @@ async def update_user_count(bot: Client, message: Message):
                       #  await bot.send_message(1733124290, f"[WARN] Could not DM admin {a.user.id}: {e}")
 
             # reset user counter in DB
-            try:
-                await db.reset_violation(chat_id, user_id)
-            except Exception as e:
-                await bot.send_message(1733124290, f"[ERROR] Failed to reset violation counter: {e}")
+           # try:
+               # await db.reset_violation(chat_id, user_id)
+          #  except Exception as e:
+           #     await bot.send_message(1733124290, f"[ERROR] Failed to reset violation counter: {e}")
 
             try:
-                await asyncio.sleep(60)
+                await asyncio.sleep(150)
                 await syd.delete()
             except:
                 pass
@@ -226,18 +226,23 @@ async def handle_admin_action(bot: Client, query):
     action, chat_id, user_id = query.data.split(":")
     chat_id, user_id = int(chat_id), int(user_id)
 
-    # only admins can press
     admin = await bot.get_chat_member(chat_id, query.from_user.id)
     if admin.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) and query.from_user.id not in Config.ADMIN:
         await query.answer("Only admins can take action.", show_alert=True)
         return
 
+    try:
+        chat = await bot.get_chat(chat_id)
+        chat_name = " in" + chat.title or chat.first_name or "Unknown Chat"
+    except Exception:
+        chat_name = ""
+        
     if action == "mute":
         try:
             u = await bot.get_users(user_id)
             syd = f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username or "Unknown"
             await bot.restrict_chat_member(chat_id, user_id, ChatPermissions())
-            await query.edit_message_text(f"✅ User [{syd}](tg://user?id={user_id}) [ID: {user_id}] has been muted.")
+            await query.edit_message_text(f"User [{syd}](tg://user?id={user_id}) [ID: {user_id}] has been muted{chat_name}. ✅")
         except Exception as e:
             await query.answer(f"Error: {e}", show_alert=True)
     elif action == "ignore":
@@ -245,7 +250,7 @@ async def handle_admin_action(bot: Client, query):
         await query.edit_message_text("ℹ️ Action ignored, counter reset.")
 
     try:
-        await asyncio.sleep(6)
+        await asyncio.sleep(10)
         if query.message.chat.type != enums.ChatType.PRIVATE:
             await query.message.delete()
     except:
