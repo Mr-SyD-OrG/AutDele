@@ -202,7 +202,7 @@ async def update_user_count(bot: Client, message: Message):
                     try:
                         await bot.send_message(
                             a.user.id,
-                            f"⚠️ Iɴ ɢʀᴏᴜᴩ **{message.chat.title}**, Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
+                            f"⚠️ Iɴ ɢʀᴏᴜᴩ **{message.chat.title}**, Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n",
                             reply_markup=InlineKeyboardMarkup([[
                                 InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                                 InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
