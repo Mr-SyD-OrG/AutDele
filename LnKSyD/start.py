@@ -202,8 +202,7 @@ async def update_user_count(bot: Client, message: Message):
                     try:
                         await bot.send_message(
                             a.user.id,
-                            f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
-                            f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
+                            f"⚠️ Iɴ ɢʀᴏᴜᴩ **{message.chat.title}**, Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                             reply_markup=InlineKeyboardMarkup([[
                                 InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                                 InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
@@ -274,7 +273,7 @@ async def handle_admin_action(bot: Client, query):
 
     elif action == "ignore":
         await db.reset_violation(chat_id, user_id)
-        await query.edit_message_text("ℹ️ Action ignored, counter reset.")
+        await query.edit_message_text("Aᴄᴛɪᴏɴ ɪɢɴᴏʀᴇᴅ, ᴄᴏᴜɴᴛᴇʀ ʀᴇꜱᴇᴛ ᵎ!ᵎ ")
 
     try:
         await asyncio.sleep(10)
