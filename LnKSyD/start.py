@@ -188,6 +188,7 @@ async def update_user_count(bot: Client, message: Message):
                     f"⚠️ {', '.join(mentions)}\n"
                     f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                     f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
+                    f"\nTʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴛᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ",
                     reply_markup=InlineKeyboardMarkup([[
                         InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                         InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
