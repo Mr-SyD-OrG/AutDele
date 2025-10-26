@@ -41,7 +41,7 @@ class Bot(Client):
         )
 
     async def start(self):
-       # await super().start()
+        await super().start()
         me = await self.get_me()
         self.mention = me.mention
         self.username = me.username
