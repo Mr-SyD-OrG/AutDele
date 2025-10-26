@@ -221,7 +221,7 @@ async def update_user_count(bot: Client, message: Message):
 
 
 
-@Client.on_callback_query(filters.regex(r"^(mute|ignore):"))
+@Client.on_callback_query(filters.regex(r"^(mute|unmute|ignore):"))
 async def handle_admin_action(bot: Client, query):
     action, chat_id, user_id = query.data.split(":")
     chat_id, user_id = int(chat_id), int(user_id)
@@ -233,7 +233,7 @@ async def handle_admin_action(bot: Client, query):
 
     try:
         chat = await bot.get_chat(chat_id)
-        chat_name = " in" + chat.title or chat.first_name or "Unknown Chat"
+        chat_name = f" ɪɴ {chat.title or chat.first_name}"
     except Exception:
         chat_name = ""
         
@@ -242,9 +242,27 @@ async def handle_admin_action(bot: Client, query):
             u = await bot.get_users(user_id)
             syd = f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username or "Unknown"
             await bot.restrict_chat_member(chat_id, user_id, ChatPermissions())
-            await query.edit_message_text(f"User [{syd}](tg://user?id={user_id}) [ID: {user_id}] has been muted{chat_name}. ✅")
+            await query.edit_message_text(
+                f"Uꜱᴇʀ [{syd}](tg://user?id={user_id}) [ID: {user_id}] ʜᴀꜱ ʙᴇᴇɴ **ᴍᴜᴛᴇᴅ**{chat_name}. ✅",
+                reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Uɴᴍᴜᴛᴇ ✓", callback_data=f"unmute:{chat_id}:{user_id}")]]
+            ))
         except Exception as e:
             await query.answer(f"Error: {e}", show_alert=True)
+    elif action == "unmute":
+        try:
+            u = await bot.get_users(user_id)
+            syd = f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username or "Unknown"
+            await bot.restrict_chat_member(
+                chat_id,
+                user_id,
+                ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)
+            )
+
+            await query.edit_message_text(f"Uꜱᴇʀ [{syd}](tg://user?id={user_id}) [ID: {user_id}] ʜᴀꜱ ʙᴇᴇɴ **ᴜɴᴍᴜᴛᴇᴅ**{chat_name}. ✅")
+        except Exception as e:
+            await query.answer(f"Error: {e}", show_alert=True)
+
     elif action == "ignore":
         await db.reset_violation(chat_id, user_id)
         await query.edit_message_text("ℹ️ Action ignored, counter reset.")
