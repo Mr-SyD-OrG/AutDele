@@ -185,10 +185,12 @@ async def update_user_count(bot: Client, message: Message):
             try:
                 syd = await bot.send_message(
                     chat_id,
-                    f"⚠️ {', '.join(mentions)}\n"
-                    f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
-                    f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
-                    f"\nNᴏᴛᴇ: Tʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴛᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ",
+                    (
+                        f"⚠️ {', '.join(mentions)}\n"
+                        f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
+                        f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?\n\n"
+                        f"Nᴏᴛᴇ: Tʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ"
+                    ),
                     reply_markup=InlineKeyboardMarkup([[
                         InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                         InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
