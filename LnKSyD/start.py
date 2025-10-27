@@ -188,7 +188,7 @@ async def update_user_count(bot: Client, message: Message):
                     f"⚠️ {', '.join(mentions)}\n"
                     f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                     f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?",
-                    f"\nTʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴛᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ",
+                    f"\nNᴏᴛᴇ: Tʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴛᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ",
                     reply_markup=InlineKeyboardMarkup([[
                         InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}"),
                         InlineKeyboardButton("Iɢɴᴏʀᴇ ⛌", callback_data=f"ignore:{chat_id}:{user_id}")
@@ -220,7 +220,7 @@ async def update_user_count(bot: Client, message: Message):
            #     await bot.send_message(1733124290, f"[ERROR] Failed to reset violation counter: {e}")
 
             try:
-                await asyncio.sleep(150)
+                await asyncio.sleep(188)
                 await syd.delete()
             except:
                 pass
@@ -268,7 +268,11 @@ async def handle_admin_action(bot: Client, query):
                 ChatPermissions(can_send_messages=True, can_send_media_messages=True, can_send_other_messages=True)
             )
 
-            await query.edit_message_text(f"Uꜱᴇʀ [{syd}](tg://user?id={user_id}) [ID: {user_id}] ʜᴀꜱ ʙᴇᴇɴ **ᴜɴᴍᴜᴛᴇᴅ**{chat_name}. ✅")
+            await query.edit_message_text(
+                f"Uꜱᴇʀ [{syd}](tg://user?id={user_id}) [ID: {user_id}] ʜᴀꜱ ʙᴇᴇɴ **ᴜɴᴍᴜᴛᴇᴅ**{chat_name}. ✅",
+                reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("Mᴜᴛᴇ ⊘", callback_data=f"mute:{chat_id}:{user_id}")]]
+            ))
         except Exception as e:
             await query.answer(f"Error: {e}", show_alert=True)
 
