@@ -186,7 +186,7 @@ async def update_user_count(bot: Client, message: Message):
                 syd = await bot.send_message(
                     chat_id,
                     (
-                        f"⚠️ {', '.join(mentions)}\n"
+                        f"⚠️ {', '.join(mentions)}\n\n"
                         f"Uꜱᴇʀ {user_mention} ʜᴀꜱ ꜱᴇɴᴛ **{count} ʟɪɴᴋ ᴍᴇꜱꜱᴀɢᴇꜱ**.\n"
                         f"Dᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴍᴜᴛᴇ ᴛʜᴇᴍ?\n\n"
                         f"Nᴏᴛᴇ: Tʜɪꜱ ᴍᴇꜱꜱᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀꜰᴛᴇʀ 3 ᴍɪɴᴜᴛᴇꜱ ⓘ"
@@ -202,6 +202,8 @@ async def update_user_count(bot: Client, message: Message):
             # DM admins if possible
             for a in admins:
                 if not a.user.is_bot:
+                    if not await db.users.find_one({"_id": a.user.id}):
+                        await db.add_user(a.user.id)
                     try:
                         await bot.send_message(
                             a.user.id,
@@ -236,6 +238,8 @@ async def update_user_count(bot: Client, message: Message):
 async def handle_admin_action(bot: Client, query):
     action, chat_id, user_id = query.data.split(":")
     chat_id, user_id = int(chat_id), int(user_id)
+    if not await db.users.find_one({"_id": user_id}):
+        await db.add_user(user_id)
 
     admin = await bot.get_chat_member(chat_id, query.from_user.id)
     if admin.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER) and query.from_user.id not in Config.ADMIN:
